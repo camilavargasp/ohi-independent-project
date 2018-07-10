@@ -1,0 +1,81 @@
+---
+title: "Camila's Independent Project"
+author: "Camila Vargas"
+date: "7/9/2018"
+output: html_document
+---
+
+#Project Description
+
+Communicate the years of scores by country, how could we do this better: 
+www.oceanhealthindex.org/region-scores/scores/samoa and have it on ohi-science.org/ohi-global. Think through the information to be presented (including time series, ranking), so we can migrate it over to where we are. Start off outlining/sketching this out: what do we need and where would it go? Don’t worry about the code and interactivity as a first step, but what kinds of plots and data would we want to display. Then, we’ll work on the code.
+
+Background: goal is migrating information from oceanhealthindex.org over to ohi-science.org/ohi-global. Starting point: static figure of goals through time by country, or country through time by goal. 
+
+Use the scores by year and try to develop something for people who want to learn more about OHI scores, but at a glance. Bringing some of the messaging from oceanhealthindex.org over to ohi-science.org/ohi-global “fluffy in a good way fluffy” - Mel
+Or another way of thinking about it could be exploring at the goal, where data is 
+
+
+**Goal** Present global scores per country and per goal in a usefuel and informaive way.
+
+#Audience
+Anyone who want to learn more about the OHI scores but not dive into the data.
+People at a country level and/or goal level who wants to be informed by looking into the OHI scores at a glance. 
+
+
+##Initial Exploration of the data
+```{r}
+library(tidyverse)
+```
+
+
+
+```{r}
+##Read in the data that needs to be visualized. 
+
+scores <- read.csv('https://raw.githubusercontent.com/OHI-Science/ohi-global/draft/eez/scores.csv')
+
+
+##Playing around with Chile
+chile <- scores %>% 
+  dplyr::filter(region_id=='224')
+
+```
+
+
+Initial findings:
+
+Each country has the "score" data for each goal for every year.
+
+* Each goal has 6 dimensions:
+  + Future
+  + Pressure
+  + Resilence
+  + Score
+  + Status
+  + Trend
+  
+With this project we are trying to visialize scores for each country, pero goal and per year
+
+```{r}
+## More Ecploration with Chile
+
+chile <- chile %>%
+  dplyr::filter(dimension == 'score') %>% 
+  dplyr::filter(goal %in% c('AO', 'BD', 'CP', 'CS', 'CW', 'FP', 'Index', 'LE', 'NP', 'SP', 'TR'))
+
+
+##Plot time serie per goal
+
+ggplot(data = chile, aes(x = year, y = score)) +
+  geom_line(aes(color= goal))
+  
+
+
+```
+
+
+
+
+
+
