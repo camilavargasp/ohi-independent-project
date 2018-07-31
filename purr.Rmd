@@ -1,0 +1,21 @@
+---
+title: "Purr Iwen"
+author: "Camila Vargas"
+date: "7/23/2018"
+output: html_document
+---
+
+```{r}
+library(purrr)
+library(repurrrsive)
+
+##Create a list
+shades <- colors()[1:10] ##list with colore names
+
+##forloop to print colors
+
+
+
+
+```
+

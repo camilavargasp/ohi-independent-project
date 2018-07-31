@@ -1,0 +1,63 @@
+---
+title: "OHI regions Maps"
+author: "Camila Vargas"
+date: "7/31/2018"
+output: html_document
+---
+
+# OHI regions map
+
+Plan for projecting maps of each OHI region for cntext when presenting their scores in ohi-global/scores.
+
+One option is to follow the script created for: http://ohi-science.org/projects/ohi-assessments/
+
+[Code in this link] (https://github.com/OHI-Science/ohi-science.github.io/tree/master/assets/maps)
+
+This code adds countries' shapefiles to a base map, bases on a list of ocuntries you give it.
+
+## POSSIBLE PLAN:
+Create 220 x 3 separate .pngs to be inserted into ohi-global/scores.
+Tree files per country:
+- zoom country eez
+- inset of the world showing the country location
+- combination of the above
+
+*To consider:* for the inset map, it will be the same global map with the same projection. Each country map will need its own bounding box so that it is appropriately zoomed in.
+
+## Where to start?
+
+1. Create a list of countries to test the loop
+```{r}
+rgn_list <- read.csv('https://raw.githubusercontent.com/OHI-Science/ohi-global/draft/eez/spatial/regions_list.csv')
+
+
+south_am <- rgn_list %>% 
+  dplyr::filter(rgn_id %in% c(172, 171, 224, 132, 137, 167, 138, 168, 173,139)) %>% 
+  select(rgn_id, rgn_name, eez_iso3)
+
+head(south_am)
+
+```
+
+
+2. Loop through each country and extract it from the downres [rgn_eez_gcs_low_res shapefile](https://github.com/OHI-Science/ohiprep/tree/master/globalprep/spatial/downres)
+
+What exactly are this files??
+
+
+```{r}
+#loop for every rgn_id in south_am read rgn_eez_gcs_low_res --> this will create the continent map??
+
+
+
+
+```
+
+
+Do we need [creatBaseMap.R](https://github.com/OHI-Science/ohi-science.github.io/blob/master/assets/maps/createBaseMap.R)
+
+And then call [AddPolys_to_basemap.R](https://github.com/OHI-Science/ohi-science.github.io/blob/master/assets/maps/AddPolys_to_basemap.R)
+
+
+
+

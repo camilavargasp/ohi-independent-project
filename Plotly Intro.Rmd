@@ -1,0 +1,42 @@
+---
+title: "Introduction to Plotly"
+author: "Camila Vargas"
+date: "7/17/2018"
+output: html_document
+---
+
+Plotly!
+
+Start by installing...
+```{r}
+install.packages("plotly")
+```
+
+
+Testing
+
+```{r}
+library(plotly)
+plot_ly(z = ~volcano)
+```
+
+Read in data and try to make a plotly fom scratch!
+
+```{r}
+scores <- read.csv('https://raw.githubusercontent.com/OHI-Science/ohi-global/draft/eez/scores.csv')
+
+##And keep playing with Chile!
+chile <- scores %>% 
+  dplyr::filter(region_id=='224') %>% 
+  dplyr::filter(dimension == 'score') %>% 
+  dplyr::filter(goal %in% c('AO', 'BD', 'CP', 'CS', 'CW', 'FP', 'Index', 'LE', 'NP', 'SP', 'TR'))
+
+
+#My first plotly!
+
+
+
+
+
+```
+
