@@ -1,0 +1,94 @@
+---
+title: "Exploring OHI Maps"
+author: "Camila Vargas"
+date: "8/8/2018"
+output: html_document
+---
+
+Exploring how to do a world map with each eez highlighted. 
+
+## Set Up
+Necesary packages for this cose to work
+
+```{r}
+
+library(parallel)
+library(doParallel)
+library(rgdal)
+library(raster)
+library(sf)
+library(ggplot2)
+library(tidyverse)
+
+source('https://raw.githubusercontent.com/OHI-Science/ohiprep_v2018/master/src/R/spatial_common.R')
+
+```
+
+## Directories
+Set up the directories
+```{r}
+##define them!
+```
+
+
+### Inset World Map
+
+Mes's code from [here](https://github.com/OHI-Science/ohi-global/blob/draft/global2017/Moore_regions/Moore_regions_data.Rmd#region-plots)
+
+```{r}
+
+## Wrangle region object imported form spatiol_common.R
+regions <- as(regions, "Spatial")
+land <- regions[regions$rgn_type %in% c("land", "land-disputed", "land-noeez"), ]
+
+# function to plot general regions
+plot_rgn <- function(rgn){ #rgn="New Zealand"
+  rgn_area <- regions[regions$rgn_name == rgn, ]  
+  png(filename =str_to_lower(sprintf("figures/inset_maps/%s.png",str_replace(rgn, pattern = " ","_"))), res=500, width=7, height=7, units="in")
+  plot(regions, col='#e3e7ea', border=NA)
+  plot(land, col='gray85', border='grey80', add=TRUE, lwd=0.5)
+  plot(rgn_area, col="red", border="red", add=TRUE)
+  dev.off()
+}
+
+## Test the function for one region
+plot_rgn("New Zealand")
+
+
+##List with region names to loop over and create one inset map per region
+region_list <- read_csv("https://raw.githubusercontent.com/OHI-Science/ohi-global/draft/eez/spatial/regions_list.csv") 
+
+##Loop through and save one map per region as a png
+for (region in region_list$rgn_name[1:5]) {
+ 
+  print(region)
+  
+  plot_rgn(rgn = region)  
+}
+
+```
+
+
+
+### Region Maps
+
+Geojason aproach. Read the [geojason files](https://github.com/OHI-Science/ohi-webapps/tree/master/ohi_gadm_geojson_archive) and add a base map
+
+```{r}
+##Exploring with Aruba
+
+abw <- sf::st_read("https://raw.githubusercontent.com/OHI-Science/ohi-webapps/master/ohi_gadm_geojson_archive/regions_gcs_abw.geojson") %>% 
+  dplyr::select(-rgn_nam)
+
+plot(abw)
+
+ggplot(abw) 
+ggosm(abw)
+
+
+
+
+
+```
+
+
