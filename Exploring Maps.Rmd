@@ -33,7 +33,7 @@ Set up the directories
 
 ### Inset World Map
 
-Mes's code from [here](https://github.com/OHI-Science/ohi-global/blob/draft/global2017/Moore_regions/Moore_regions_data.Rmd#region-plots)
+Mel's code from [here](https://github.com/OHI-Science/ohi-global/blob/draft/global2017/Moore_regions/Moore_regions_data.Rmd#region-plots)
 
 ```{r}
 
@@ -44,7 +44,7 @@ land <- regions[regions$rgn_type %in% c("land", "land-disputed", "land-noeez"), 
 # function to plot general regions
 plot_rgn <- function(rgn){ #rgn="New Zealand"
   rgn_area <- regions[regions$rgn_name == rgn, ]  
-  png(filename =str_to_lower(sprintf("figures/inset_maps/%s.png",str_replace(rgn, pattern = " ","_"))), res=500, width=7, height=7, units="in")
+  png(filename =str_to_lower(sprintf("figures/inset_maps/%s.png",str_replace(rgn, pattern = " ","_"))), res=500, width=7, height=4, units="in")
   plot(regions, col='#e3e7ea', border=NA)
   plot(land, col='gray85', border='grey80', add=TRUE, lwd=0.5)
   plot(rgn_area, col="red", border="red", add=TRUE)
@@ -52,7 +52,7 @@ plot_rgn <- function(rgn){ #rgn="New Zealand"
 }
 
 ## Test the function for one region
-plot_rgn("New Zealand")
+plot_rgn("Chile")
 
 
 ##List with region names to loop over and create one inset map per region
@@ -85,7 +85,12 @@ plot(abw)
 ggplot(abw) 
 ggosm(abw)
 
+chl <- sf::st_read("https://raw.githubusercontent.com/OHI-Science/ohi-webapps/master/ohi_gadm_geojson_archive/regions_gcs_chl.geojson") %>% 
+  dplyr::select(-rgn_nam)
 
+plot(chl)
+
+ggplot(chl) 
 
 
 

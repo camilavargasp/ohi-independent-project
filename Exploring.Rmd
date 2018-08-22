@@ -403,8 +403,22 @@ plot(rank_plot)
 ```
 
 
+Exploring a seconf option on how to fill in only the country of interest
 
+```{r}
+country_interest <- rank %>% 
+  mutate(color= ifelse(region_id== 224, 1, 0)) %>% 
+  select(color) %>% 
+  list()
 
+rank_plot <- ggplot(data = rank, aes(x= ranking, y= score, fill = country_interest))+
+  geom_bar(stat = "identity")+
+  theme_minimal()+
+  theme(panel.grid = element_blank(),
+        axis.text.x = element_blank())
+
+##DID NOT WORK
+```
 
 
 

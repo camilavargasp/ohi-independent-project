@@ -1,0 +1,62 @@
+---
+title: "Casay score code"
+author: "Camila Vargas"
+date: "9/8/2018"
+output: html_document
+---
+
+
+```{r}
+library(ohicore)
+
+source('https://raw.githubusercontent.com/OHI-Science/ohiprep_v2018/master/src/R/common.R')
+
+#dir_ohibc <- '~/github/ohibc'
+# dir_calc <- file.path(dir_ohibc, 'calc_ohibc')
+# dir_figs <- file.path(dir_ohibc, 'ms_figures')
+
+# source(file.path(dir_figs, 'fig_fxns.R'))
+
+### provenance tracking
+# library(provRmd); prov_setup()
+```
+
+
+
+
+```{r}
+
+scores <- read.csv('https://raw.githubusercontent.com/OHI-Science/ohi-global/draft/eez/scores.csv') %>%
+  filter(dimension %in% c('score')) %>%
+  spread(dimension, score) %>%
+  filter(!is.na(score)) 
+  #left_join(get_rgn_names(), by = c('region_id' = 'rgn_id'))
+
+goals_label <-  data.frame(goal_label = c("Index", "Artisanal Opporunities", "Biodiversity", "Coastal Protection", "Carbon Storage", "Clean Waters", "Food Provision", "Livelihoods and Economies", "Natural Products", "Sense of Place", "Tourism and Recreation"), goal = c("Index", "AO", "BD", "CP","CS", "CW", "FP", "LE", "NP", "SP", "TR"), description = c("Overall Ocean Health Index score", "Measures whether people who need to fish <br> on a small, local scale have the opportunity to do so", "Estimates how successfully the richness <br> and variety of marine life is being maintained", "Measures the condition of coastal habitats <br> that store and sequester atmospheric carbon", "Measures the degree to which oceans are free of chemicals contaminants, <br> excessive nutrients, human pathogens and trash", "Coastal and ocean-dependent livelihoods (job quantity and quality) <br> and economies (revenues) produced by marine sectors", "The amount of protection provided <br> by marine and coastal habitats that safeguard shores", "Measures the amount of seafood captured <br> or raised in a sustainable way", "Measures how sustainably people harvest <br> non-food products from the sea", "The conservation status of iconic species and <br> geographic locations that contribute to cultural identity", "The value people have for experiencing <br> and enjoying coastal areas and attractions")) 
+
+goal_description <- scores %>% 
+  left_join(goals_label, by= "goal")
+
+scores_plot <- ggplot(goal_description %>% 
+                        filter(region_id != 0), 
+                      aes(x = year, y = score, color = rgn_id)) +
+  ggtheme_plot() +
+  geom_line(data = goal_scores %>% 
+              filter(region_id == 0), 
+            aes(x = year, y = score), size = 1, color = 'grey20', alpha = .8) +
+  geom_line(aes(group = region_id), alpha = .7, size = .25) +
+  scale_x_continuous(breaks = c(2001, 2006, 2011, 2016)) +
+  scale_y_continuous(limits = c(0, 100)) +
+  theme(axis.text.x = element_text(angle = 30),
+        axis.title  = element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_text(hjust = 0)) +
+  labs(color = 'Region') +
+  scale_color_viridis_d() +
+  guides(colour = guide_legend(override.aes = list(size = 3))) +
+  facet_wrap( ~ goal_name, ncol = 2)
+
+# ggsave(file.path(dir_figs, 'fig_2_goal_score_facets.png'),
+       # height = 6, width = 6, dpi = 300)
+```
+

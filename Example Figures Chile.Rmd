@@ -1,0 +1,321 @@
+---
+title: "Finalized Figure Example"
+author: "Camila Vargas"
+date: "8/1/2018"
+output: html_document
+---
+
+The following scrip descibes how to obtain the ranking and time serie plots for one country. Next steps are to add this in a for loop (or purr) of each country.
+
+# Set up
+```{r}
+library(tidyverse)
+library(plotly)
+library(readr)
+
+```
+
+# Scores Timeseries 
+
+## Data
+
+Score Description short version from methods
+
+AO   | Opportunity for small-scale fishers to supply catch to their families, community or local market.
+BD   | Conservation status of native marine species and key habitats
+CS   | Condition of coastal habitats that store and sequester atmospheric carbon
+CW   | Degree to which oceans are free of contaminants such as chemicals, excessive nutrients, human pathogens, and trash
+LE   | Coastal and ocean-dependent livelihoods (job quantity and quality) and economies (revenues) produced by marine sectors
+CP   | Amount of protection provided by marine and coastal habitats serving as natural buffers against incoming waves
+FP   | Sustainable harvest of seafood from wild-caught fisheries and mariculture 
+NP   | Natural resources that are sustainably extracted from living marine resources
+SP   | Conservation status of iconic species and geographic locations that contribute to cultural identity
+TR   | Value people have for experiencing and enjoying coastal areas and attractions
+
+
+```{r}
+scores <- read.csv('https://raw.githubusercontent.com/OHI-Science/ohi-global/draft/eez/scores.csv') %>%
+  rename(abb = "goal")
+
+#Goals Description according to "short version" 
+
+goals <-  data.frame(goal = c("Index", 
+                              "Artisanal Opporunities", 
+                              "Biodiversity",
+                              "Carbon Storage",
+                              "Clean Waters", 
+                              "Livelihoods and Economies",
+                              "Coastal Protection", 
+                              "Food Provision",
+                              "Natural Products", 
+                              "Sense of Place", 
+                              "Tourism and Recreation"), 
+                     abb = c("Index", 
+                             "AO", 
+                             "BD", 
+                             "CS",
+                             "CW", 
+                             "LE", 
+                             "CP", 
+                             "FP", 
+                             "NP", 
+                             "SP", 
+                             "TR"), 
+                     description = c("Overall Ocean Health Index score", 
+                                     "Opportunity for small-scale fishers to supply <br> catch to their families, community or local market", 
+                                     "Conservation status of native marine species and key habitats", 
+                                     "Condition of coastal habitats that store and <br> sequester atmospheric carbon", 
+                                     "Degree to which oceans are free of contaminants such as  <br> chemicals, excessive nutrients, human pathogens, and trash", 
+                                     "Coastal and ocean-dependent livelihoods (job quantity and quality) <br> and economies (revenues) produced by marine sectors", 
+                                     "Amount of protection provided by marine and coastal habitats <br> serving as natural buffers against incoming waves", 
+                                     "Sustainable harvest of seafood from wild-caught <br> fisheries and mariculture ", 
+                                     "Natural resources that are sustainably extracted <br> from living marine resources", 
+                                     "Conservation status of iconic species and geographic <br> locations that contribute to cultural identity", 
+                                     "Value people have for experiencing and enjoying <br> coastal areas and attractions")) 
+
+
+scores_description <- scores %>% 
+  left_join(goals, by= "abb") %>% 
+  mutate(label = ifelse(year == max(year), as.character(abb), NA_character_))
+
+
+
+
+```
+
+
+
+## Filter for one country
+In this case Chile
+**Note** Here I also filter for the score of each goal and the the Index (no sub-goals included here)
+
+```{r}
+chile <- scores_description %>% 
+  dplyr::filter(region_id=='224') %>% 
+  dplyr::filter(dimension == 'score') %>% 
+  dplyr::filter(abb %in% c('AO', 'BD', 'CP', 'CS', 'CW', 'FP', 'Index', 'LE', 'NP', 'SP', 'TR'))
+```
+
+## Plot
+
+```{r}
+chile_plot <- ggplot(data = chile, aes(x = year, y = score, color= goal)) +
+  geom_line(size = 1)+
+  geom_point(aes(text = paste("Goal: ", goal, "<br>Year:", year, "<br>Score:", score, "<br>Description: ", description)), size = 2)+
+  theme_light()+
+  geom_line(data=subset(chile, goal == "Index"), size= 1.8)+ #changes the thinkness of the index lne and points respectively
+  geom_point(data=subset(chile, goal == "Index"), size= 2)+
+  scale_x_continuous(breaks = seq(2012, 2018, 1))+
+  labs(x="Year", y="Score", color = "Goal")+ #color= Goal changes the title of the key
+  #ggtitle("Scores Timeseries")+
+  #scale_colour_brewer(palette = "Spectral")+
+  theme(legend.title = element_text(size = 12, color = "black"),
+        legend.text = element_text(size = 10),
+        legend.key = element_rect(size = 1))+
+scale_color_manual(name="Goal", #customize color and key names manually. NOTE code for color don't work
+                      labels = c("Artisanal Opporunities",
+                                 "Biodiversity",
+                                 "Coastal Protection",
+                                 "Carbon Storage",
+                                 "Clean Waters",
+                                 "Food Provision",
+                                 "Index",
+                                 "Livelihoods and Economies",
+                                 "Natural Products",
+                                 "Sense of Place",
+                                 "Tourism and Recreation"),
+                   values = c("Artisanal Opporunities" = "aquamarine3",
+                                 "Biodiversity" = "goldenrod1",
+                                 "Coastal Protection" = "thistle3",
+                                 "Carbon Storage" = "hotpink2",
+                                 "Clean Waters" = "tomato2",
+                                 "Food Provision" = "sienna2",
+                                 "Index" = "black",
+                                 "Livelihoods and Economies" = "pink1",
+                                 "Natural Products" = "lightcyan4",
+                                 "Sense of Place" = "plum4",
+                                 "Tourism and Recreation" = "darkseagreen3"))
+plot(chile_plot) 
+  
+#PLOTLY!!
+ggplotly(chile_plot, tooltip="text") %>% 
+  config(displayModeBar = F) #this allows me to disply only the hover text I assing in geom_point.
+
+
+```
+
+
+# Ranking Plot
+
+
+## Data
+In this case the ranking is ploted based on the scores of the most resent assessment 
+
+```{r}
+##Data
+
+ rank <- scores %>% 
+  dplyr::filter(dimension == "score",
+                abb == "Index",
+                year == 2018) %>% 
+  dplyr::arrange(desc(score)) %>% 
+  dplyr::mutate(ranking = seq(1, 222, 1))
+
+
+```
+
+
+## Identify the country of interest
+One solution to color the bar of the country of interes is to add a column to the data.frame that recognize the country that need to be colored.
+In this case I'll try with Chile,
+**Note** Think how this will loof like in the for loop
+
+```{r}
+
+rank_color_country <- rank %>% 
+  mutate(color= ifelse(region_id== 224, "yes", "no"))
+
+```
+
+
+
+## The Plot
+
+```{r}
+##histogram
+
+rank_plot <- ggplot(data = rank_color_country, aes(x= ranking, y= score, color=color))+
+  geom_bar(aes(fill=color), stat = "identity", width = .2)+
+  theme_minimal()+
+  ylab("Score")+
+  scale_fill_manual(values = c("cadetblue", "seagreen3"))+
+  theme(panel.grid = element_blank(),
+        legend.position = "none",
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(color = "grey45", vjust = 2)) 
+  
+
+
+plot(rank_plot)
+```
+
+
+## Improving the code with casey's code. 
+
+for website (plotly)
+
+```{r}
+chile_plot_2 <- ggplot(chile %>%
+                         filter(abb != "Index"),
+                       aes(x = year, y = score, color = goal)) +
+  geom_line(data = chile %>% 
+              filter( abb == "Index"),
+            aes(x = year, y = score), size = 1, color = 'gray20', alpha = .9) +
+  geom_point(data = chile %>% 
+              filter( abb == "Index"),
+            aes(x = year, y = score, text = paste("Goal: ", goal, "<br>Year:", year, "<br>Score:", score, "<br>Description: ", description)), size = 1.5, color = 'gray20', alpha = .9)+
+  geom_line(aes(group = goal), alpha = .7, size = .5)+
+  geom_point(aes(text = paste("Goal: ", goal, "<br>Year:", year, "<br>Score:", score, "<br>Description: ", description)), size = .9)+
+    scale_x_continuous(breaks = seq(2012, 2018, 1))+
+  labs(x="Year", y="Score", color = "Goal", caption = "Note: Gray line represents the overall region score")+ #caption does not display in plotly
+  theme_minimal()+
+  scale_color_viridis_d()+
+  guides(colour = guide_legend(override.aes = list(size = 3)))
+
+plot(chile_plot_2)
+
+ggplotly(chile_plot_2, tooltip="text") %>% 
+  config(displayModeBar = F)
+
+
+```
+
+
+for region card (ggplot)
+
+*make the lines thicker
+
+```{r}
+
+chile_plot_3 <- ggplot(chile %>%
+                         filter(abb != "Index"),
+                       aes(x = year, y = score, color = goal)) +
+  geom_line(data = chile %>% 
+              filter( abb == "Index"),
+            aes(x = year, y = score), size = 1.3, color = 'gray20', alpha = .9) +
+  geom_point(data = chile %>% 
+              filter( abb == "Index"),
+            aes(x = year, y = score, text = paste("Goal: ", goal, "<br>Year:", year, "<br>Score:", score, "<br>Description: ", description)), size = 1.8, color = 'gray20', alpha = .9)+
+  geom_line(aes(group = goal), alpha = .7, size = .8)+
+  geom_point(aes(text = paste("Goal: ", goal, "<br>Year:", year, "<br>Score:", score, "<br>Description: ", description)), size = 1)+
+    scale_x_continuous(breaks = seq(2012, 2018, 1))+
+  labs(y="Score", color = "Goal")+ # caption = "Note: Gray line represents the overall region score" caption does not display in plotly
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 30),
+        axis.title.x = element_blank()) +
+  scale_color_viridis_d()+
+  guides(colour = guide_legend(override.aes = list(size = 3)))
+
+plot(chile_plot_3)
+
+ggsave('ts_chile.png', plot = chile_plot_3, device = 'png', path= 'figures/time_series', height = 6, width = 6, dpi = 300)
+
+
+
+
+```
+
+
+
+Replacing key by adding names on tom of each line
+
+```{r}
+
+library(ggrepel)
+
+chile_plot_4 <- ggplot(chile %>%
+                         filter(abb != "Index"),
+                       aes(x = year, y = score, color = goal)) +
+  geom_line(data = chile %>% 
+              filter( abb == "Index"),
+            aes(x = year, y = score), size = 1.3, color = 'gray20', alpha = .9) +
+  geom_point(data = chile %>% 
+              filter( abb == "Index"),
+            aes(x = year, y = score, text = paste("Goal: ", goal, "<br>Year:", year, "<br>Score:", score, "<br>Description: ", description)), size = 1.8, color = 'gray20', alpha = .9)+
+  geom_text_repel(data= chile %>% 
+                    filter( abb == "Index"),
+                    aes(label = label), na.rm=TRUE, nudge_x=-0.1, point.padding = unit(8, "points"), nudge_y = 1, size= 3, segment.color=NA, color = 'gray20')+
+  geom_line(aes(group = goal), alpha = .7, size = .8)+
+  geom_point(aes(text = paste("Goal: ", goal, "<br>Year:", year, "<br>Score:", score, "<br>Description: ", description)), size = 1)+
+    scale_x_continuous(breaks = seq(2012, 2018, 1))+
+  labs(y="Score", color = "Goal")+ 
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 30),
+        axis.title.x = element_blank(),
+        legend.position = "None") +
+  geom_text_repel(aes(label = label), na.rm=TRUE, nudge_x= 0.1, point.padding = unit(8, "points"), nudge_y = 0.5, size=3, segment.color=NA) +
+  scale_color_viridis_d()+
+  guides(colour = guide_legend(override.aes = list(size = 3)))
+
+plot(chile_plot_4)
+
+ggsave('ts_chile.png', plot = chile_plot_4, device = 'png', path= 'figures/time_series', height = 4, width =6 , dpi = 300)
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
