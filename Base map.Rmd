@@ -52,7 +52,7 @@ plot(chl)
 
 chl_map <- ggplot()+
   geom_sf(data = chl, color = "gray30", fill = NA)
-
+plot(chl_map)
 
 ## Using ggmaps
 
@@ -176,16 +176,23 @@ all_rgns <- sf::st_read('../ohiprep/globalprep/spatial/downres', layer="rgn_all_
 
 chl_lr <- all_rgns %>% 
   filter(rgn_id== 224) %>% 
-  `st_crs<-`(3857) ##adds coordenate reference system
+  `st_crs<-`(4326) ##adds coordenate reference system
 
 ##Making the poligon valid
+
+##There is problem with the CRS of the maps, it is not matching so we have to transform the all_rgn file and then plot.
 
 library(lwgeom)
 chl_valid <- st_make_valid(chl_lr)
 
-plot(chl_valid)
 
-
+test <- st_make_valid(all_rgns)
+plot(test[1])
+st_crs(test) <- 4326
+test <- st_transform(test, crs = 3857)[1]
+plot(test[1])
+plot(chl_map, add=TRUE)
+plot(test, bgMap = chl_map)
 ##back to ggmap
 chl_loc <- c(-113.2038, -59.8649, -65.72667, -18.35102)
 
@@ -197,6 +204,7 @@ ggmap(chl_map)
 st_crs(chl_map)
 plot(chl_valid[1], bgMap = chl_map)
 plot(st_transform(chl_valid, crs = 3857)[1], bgMap = chl_map)
+plot(chl_lr[1])
 
 ## overlap with ggplot
 
